@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const moment = require("moment");
+const mongoose = require('mongoose');
+const moment = require('moment');
 
 const TarefaSchema = new mongoose.Schema({
   id: {
@@ -14,11 +14,11 @@ const TarefaSchema = new mongoose.Schema({
   tipo: { type: String, required: true },
 });
 
-TarefaSchema.set("toJSON", {
+TarefaSchema.set('toJSON', {
   transform: function (doc, ret) {
-    ret.createdAt = moment(ret.createdAt).format("DD/MM/YYYY HH:mm:ss");
+    ret.data_criacao = moment(ret.data_criacao).format('DD/MM/YYYY HH:mm:ss');
     return ret;
   },
 });
 
-module.exports = mongoose.model("Tarefa", TarefaSchema);
+module.exports = mongoose.model('Tarefa', TarefaSchema);

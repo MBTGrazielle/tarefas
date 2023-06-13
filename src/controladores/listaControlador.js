@@ -1,36 +1,25 @@
-const ListaSchema = require("../models/lista");
-const mongoose = require("mongoose");
+const ListaSchema = require('../models/lista');
+const mongoose = require('mongoose');
+const { generateAutoID } = require('../utils/generateAutoID');
 
-function generateAutoID() {
-  const timestamp = new Date().getTime().toString();
-  const randomNum = Math.floor(Math.random() * 1000).toString();
-  const autoID = timestamp + randomNum;
-  return autoID;
-}
-
-const cadastarLista = async (req, res) => {
-  const { titulo } = req.body;
+const cadastrarLista = async (req, res) => {
+  const { titulo, tipo } = req.body;
 
   try {
+    const novoID = await generateAutoID();
+
     const novaLista = new ListaSchema({
       titulo,
-      id: generateAutoID(),
-      tipo: "lista",
+      id: novoID,
+      tipo: tipo,
     });
 
-    let listaSalva = await novaLista.save();
-
-    let lista = {
-      titulo: listaSalva.titulo,
-      id: generateAutoID(),
-      data_criacao: listaSalva.createdAt,
-      tipo: listaSalva.tipo,
-    };
+    await novaLista.save();
 
     res.status(201).json({
-      Msg: "Lista Criada com sucesso",
+      mensagem: 'Lista criada com sucesso',
       status: 201,
-      Info: lista,
+      info: novaLista,
     });
   } catch (error) {
     res.status(500).json({
@@ -42,10 +31,27 @@ const cadastarLista = async (req, res) => {
 
 const todasListas = async (req, res) => {
   try {
-    const listas = await ListaSchema.find();
-    res.status(200).json(listas);
+    const listas = await ListaSchema.find().sort({ data_criacao: -1 });
+    if (listas.length === 0) {
+      res.status(404).json({
+        mensagem: 'Nenhuma lista foi encontrada.',
+        status: 404,
+      });
+    } else {
+      res.status(200).json({
+        quantidade_encontrada: `Encontramos ${listas.length} registro${
+          listas.length === 1 ? '' : 's'
+        }.`,
+        mensagem: 'Listas encontradas.',
+        listas,
+        status: 200,
+      });
+    }
   } catch (error) {
-    res.status(500).json({ error: "Erro ao buscar as listas." });
+    res.status(500).json({
+      mensagem: 'Erro ao buscar as listas.',
+      status: 500,
+    });
   }
 };
 
@@ -53,21 +59,26 @@ const buscarLista = async (req, res) => {};
 
 const atualizarLista = async (req, res) => {
   const { id } = req.params;
-  const { titulo } = req.body;
+  const { titulo, tipo } = req.body;
 
   try {
     const listaAtualizada = await ListaSchema.find({ id }).updateOne({
       titulo,
+      tipo,
     });
 
     const response = await ListaSchema.findOne({ id });
 
-    if (!listaAtualizada) {
-      return res.status(404).json({ error: "Lista não encontrada." });
+    if (response === null) {
+      return res
+        .status(404)
+        .json({ mensagem: 'Lista não encontrada.', status: 404 });
     }
-    res.status(200).json({ lista: response });
+    res.status(200).json({ lista: response, status: 200 });
   } catch (error) {
-    res.status(500).json({ error: "Erro ao atualizar a lista." });
+    res
+      .status(500)
+      .json({ mensagem: 'Erro ao atualizar a lista.', status: 500 });
   }
 };
 
@@ -75,24 +86,34 @@ const deletarLista = async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (!id) {
-      return res.status(400).json({ error: "ID inválido." });
-    }
+    let listaExcluida = await ListaSchema.findOneAndDelete({ id });
 
-    let lista = await ListaSchema.findOne({ id }).deleteOne();
+    if (listaExcluida) {
+      let listasRestantes = await ListaSchema.find().countDocuments();
+      let nomesListas = await ListaSchema.find({}, 'titulo');
 
-    if (lista.deletedCount === 1) {
-      return res
-        .status(200)
-        .json({ mensagem: `Lista deletada com sucesso`, status: 200 });
+      return res.status(200).json({
+        mensagem: 'Lista deletada com sucesso',
+        listas_restantes: listasRestantes,
+        listas: nomesListas.map(lista => lista.titulo),
+        status: 200,
+      });
+    } else {
+      return res.status(404).json({
+        mensagem: 'Lista não encontrada',
+        status: 404,
+      });
     }
   } catch (error) {
-    res.status(500).json({ error: "Erro ao excluir a Lista." });
+    res.status(500).json({
+      mensagem: 'Erro ao excluir a Lista.',
+      status: 500,
+    });
   }
 };
 
 module.exports = {
-  cadastarLista,
+  cadastrarLista,
   todasListas,
   buscarLista,
   atualizarLista,
