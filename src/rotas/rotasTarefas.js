@@ -3,7 +3,8 @@ require("dotenv").config();
 const { Router } = require("express");
 
 const {
-  cadastrarTarefas,
+  cadastrarTarefasLista,
+  cadastrarTarefasSubLista,
   todasTarefas,
   buscarTarefa,
   atualizarTarefa,
@@ -12,7 +13,8 @@ const {
 
 const rota = Router();
 
-rota.post("/cadastrarTarefas", cadastrarTarefas);
+rota.post("/cadastrarTarefasLista", cadastrarTarefasLista);
+rota.post("/cadastrarTarefasSubLista", cadastrarTarefasSubLista);
 rota.get("/todasTarefas", todasTarefas);
 rota.get("/buscarTarefas", buscarTarefa);
 rota.get("/buscarTarefa", buscarTarefa);
