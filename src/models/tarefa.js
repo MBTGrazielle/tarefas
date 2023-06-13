@@ -2,6 +2,9 @@ const mongoose = require("mongoose");
 const moment = require("moment");
 
 const tarefaSchema = new mongoose.Schema({
+  id: {
+    type: Number,
+  },
   lista_id: { type: mongoose.Schema.Types.ObjectId, ref: "Lista" },
   sublista_id: { type: mongoose.Schema.Types.ObjectId, ref: "Sublista" },
   titulo: { type: String, required: true },
