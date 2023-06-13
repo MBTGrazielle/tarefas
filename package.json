@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jest --watchAll --detectOpenHandles",
     "dev": "git pull & npm i & nodemon ./src/index.js",
-    "start": "node .src/index.js"
+    "start": "nodemon ./src/index.js"
   },
   "repository": {
     "type": "git",
@@ -32,7 +32,8 @@
     "moment": "^2.29.4",
     "mongoose": "^7.2.4",
     "nodemailer": "^6.9.2",
-    "nodemon": "^2.0.22"
+    "nodemon": "^2.0.22",
+    "remove-accents": "^0.4.4"
   },
   "jest": {
     "setupFiles": [

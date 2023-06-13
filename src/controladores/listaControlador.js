@@ -1,6 +1,7 @@
 const ListaSchema = require('../models/lista');
 const mongoose = require('mongoose');
 const { generateAutoID } = require('../utils/generateAutoID');
+const removeAccents = require('remove-accents');
 
 const cadastrarLista = async (req, res) => {
   const { titulo, tipo } = req.body;
@@ -55,7 +56,51 @@ const todasListas = async (req, res) => {
   }
 };
 
-const buscarLista = async (req, res) => {};
+const buscarLista = async (req, res) => {
+  const parametros = req.body;
+
+  try {
+    const listas = await ListaSchema.find().sort({ data_criacao: -1 });
+
+    const listasFiltradas = listas.filter(lista => {
+      const matches = Object.entries(parametros).every(
+        ([chave, valorParametro]) => {
+          const valorLista = lista[chave];
+
+          if (
+            valorLista &&
+            removeAccents(valorLista.toString().toLowerCase()).includes(
+              removeAccents(valorParametro.toString().toLowerCase())
+            )
+          ) {
+            return true;
+          }
+        }
+      );
+
+      return matches;
+    });
+
+    if (listasFiltradas.length > 0) {
+      return res.status(200).json({
+        mensagem: `Encontramos ${listasFiltradas.length} resultado${
+          listasFiltradas.length === 1 ? '' : 's'
+        }.`,
+        listasFiltradas,
+        status: 200,
+      });
+    } else {
+      return res.status(404).json({
+        mensagem: 'Nenhum resultado foi encontrado para a sua busca.',
+        status: 404,
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      mensagem: error.message,
+    });
+  }
+};
 
 const atualizarLista = async (req, res) => {
   const { id } = req.params;
