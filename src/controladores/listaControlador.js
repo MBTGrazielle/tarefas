@@ -46,7 +46,31 @@ const todasListas = async (req, res) => {
   }
 };
 
+const buscarLista = async (req, res) => {};
+
+const atualizarLista = async (req, res) => {
+  const { id } = req.params;
+  const { titulo } = req.body;
+
+  try {
+    const listaAtualizada = await ListaSchema.find({ id }).updateOne({
+      titulo,
+    });
+
+    const response = await ListaSchema.findOne({ id });
+
+    if (!listaAtualizada) {
+      return res.status(404).json({ error: "Lista não encontrada." });
+    }
+    res.status(200).json({ lista: response });
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao atualizar a lista." });
+  }
+};
+
 module.exports = {
   cadastarLista,
   todasListas,
+  buscarLista,
+  atualizarLista,
 };
