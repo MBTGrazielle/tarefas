@@ -12,7 +12,11 @@ const cadastarLista = async (req, res) => {
   const { titulo } = req.body;
 
   try {
-    const novaLista = new ListaSchema({ titulo, id: generateAutoID() });
+    const novaLista = new ListaSchema({
+      titulo,
+      id: generateAutoID(),
+      tipo: "lista",
+    });
 
     let listaSalva = await novaLista.save();
 
@@ -20,9 +24,8 @@ const cadastarLista = async (req, res) => {
       titulo: listaSalva.titulo,
       id: generateAutoID(),
       data_criacao: listaSalva.createdAt,
+      tipo: listaSalva.tipo,
     };
-
-    console.log(lista);
 
     res.status(201).json({
       Msg: "Lista Criada com sucesso",

@@ -23,9 +23,8 @@ const cadastrarSubListas = async (req, res) => {
       id: generateAutoID(),
       titulo,
       lista_id: listaExistente.id,
+      tipo: "subLista",
     });
-
-    console.log(novaSubLista);
 
     const subListaSalva = await novaSubLista.save();
 
