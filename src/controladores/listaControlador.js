@@ -68,9 +68,30 @@ const atualizarLista = async (req, res) => {
   }
 };
 
+const deletarLista = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ error: "ID inválido." });
+    }
+
+    let lista = await ListaSchema.findOne({ id }).deleteOne();
+
+    if (lista.deletedCount === 1) {
+      return res
+        .status(200)
+        .json({ mensagem: `Lista deletada com sucesso`, status: 200 });
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao excluir a Lista." });
+  }
+};
+
 module.exports = {
   cadastarLista,
   todasListas,
   buscarLista,
   atualizarLista,
+  deletarLista,
 };
