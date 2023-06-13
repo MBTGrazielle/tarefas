@@ -1,24 +1,24 @@
 const mongoose = require("mongoose");
 const moment = require("moment");
 
-const tarefaSchema = new mongoose.Schema({
+const TarefaSchema = new mongoose.Schema({
   id: {
     type: Number,
   },
-  lista_id: { type: mongoose.Schema.Types.ObjectId, ref: "Lista" },
-  sublista_id: { type: mongoose.Schema.Types.ObjectId, ref: "Sublista" },
+  lista_id: { type: Number, required: true },
+  sublista_id: { type: Number },
   titulo: { type: String, required: true },
   descricao: { type: String },
-  alocado: { type: String, required: true, unique: true },
+  alocado: { type: String, required: true },
   data_criacao: { type: Date, default: Date.now },
-  data_entrega: { type: Date, default: Date.now },
+  tipo: { type: String, required: true },
 });
 
-tarefaSchema.set("toJSON", {
+TarefaSchema.set("toJSON", {
   transform: function (doc, ret) {
     ret.createdAt = moment(ret.createdAt).format("DD/MM/YYYY HH:mm:ss");
     return ret;
   },
 });
 
-module.exports = mongoose.model("Tarefa", tarefaSchema);
+module.exports = mongoose.model("Tarefa", TarefaSchema);

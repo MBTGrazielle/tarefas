@@ -9,6 +9,7 @@ const ListaSchema = new mongoose.Schema({
   },
   createdAt: { type: Date, default: Date.now },
   titulo: { type: String, required: true },
+  tipo: { type: String, required: true },
 });
 
 ListaSchema.set("toJSON", {

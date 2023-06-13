@@ -8,6 +8,7 @@ const SubListaSchema = new mongoose.Schema({
   lista_id: { type: Number, required: true },
   titulo: { type: String, required: true },
   data_criacao: { type: Date, default: Date.now },
+  tipo: { type: String, required: true },
 });
 
 SubListaSchema.set("toJSON", {
