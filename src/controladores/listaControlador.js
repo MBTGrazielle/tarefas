@@ -37,6 +37,16 @@ const cadastarLista = async (req, res) => {
   }
 };
 
+const todasListas = async (req, res) => {
+  try {
+    const listas = await ListaSchema.find();
+    res.status(200).json(listas);
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao buscar as listas." });
+  }
+};
+
 module.exports = {
   cadastarLista,
+  todasListas,
 };
