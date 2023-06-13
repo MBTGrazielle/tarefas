@@ -1,4 +1,5 @@
 const ListaSchema = require('../models/lista');
+const SubListaSchema = require('../models/subLista');
 const mongoose = require('mongoose');
 const { generateAutoID } = require('../utils/generateAutoID');
 const removeAccents = require('remove-accents');
@@ -33,21 +34,32 @@ const cadastrarLista = async (req, res) => {
 const todasListas = async (req, res) => {
   try {
     const listas = await ListaSchema.find().sort({ data_criacao: -1 });
+
     if (listas.length === 0) {
-      res.status(404).json({
+      return res.status(404).json({
         mensagem: 'Nenhuma lista foi encontrada.',
         status: 404,
       });
-    } else {
-      res.status(200).json({
-        quantidade_encontrada: `Encontramos ${listas.length} registro${
-          listas.length === 1 ? '' : 's'
-        }.`,
-        mensagem: 'Listas encontradas.',
-        listas,
-        status: 200,
+    }
+
+    const listasComSublistas = [];
+
+    for (const lista of listas) {
+      const sublistas = await SubListaSchema.find({ lista_id: lista._id });
+      listasComSublistas.push({
+        lista,
+        sublistas,
       });
     }
+
+    res.status(200).json({
+      quantidade_encontrada: `Encontramos ${
+        listasComSublistas.length
+      } registro${listasComSublistas.length === 1 ? '' : 's'}.`,
+      mensagem: 'Listas encontradas.',
+      listas: listasComSublistas,
+      status: 200,
+    });
   } catch (error) {
     res.status(500).json({
       mensagem: 'Erro ao buscar as listas.',

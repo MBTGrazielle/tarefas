@@ -1,36 +1,38 @@
-const mongoose = require("mongoose");
-const SubListaSchema = require("../models/subLista");
-const ListaSchema = require("../models/lista");
-
-function generateAutoID() {
-  const timestamp = new Date().getTime().toString();
-  const randomNum = Math.floor(Math.random() * 1000).toString();
-  const autoID = timestamp + randomNum;
-  return autoID;
-}
+const mongoose = require('mongoose');
+const SubListaSchema = require('../models/subLista');
+const ListaSchema = require('../models/lista');
+const { generateAutoID } = require('../utils/generateAutoID');
 
 const cadastrarSubListas = async (req, res) => {
+  const { lista_id, titulo } = req.body;
+
   try {
-    const { lista_id, titulo } = req.body;
+    const novoID = await generateAutoID();
 
     const listaExistente = await ListaSchema.findOne({ id: lista_id });
 
     if (!listaExistente) {
-      return res.status(404).json({ error: "Lista não encontrada." });
+      return res.status(404).json({ error: 'Lista não encontrada.' });
     }
 
     const novaSubLista = new SubListaSchema({
-      id: generateAutoID(),
+      id: novoID,
       titulo,
-      lista_id: listaExistente.id,
-      tipo: "subLista",
+      lista_id: listaExistente._id, // Associando a sublista à lista correspondente
+      tipo: 'subLista',
     });
 
-    const subListaSalva = await novaSubLista.save();
+    await novaSubLista.save();
 
-    res.status(201).json(subListaSalva);
+    res
+      .status(201)
+      .json({
+        mensagem: 'Sublista criada com sucesso',
+        sublista: novaSubLista,
+        status: 201,
+      });
   } catch (error) {
-    res.status(500).json({ error: "Erro ao cadastrar a subLista." });
+    res.status(500).json({ error: 'Erro ao cadastrar a subLista.' });
   }
 };
 
@@ -39,7 +41,7 @@ const todasSubListas = async (req, res) => {
     const subListas = await SubListaSchema.find();
     res.status(200).json(subListas);
   } catch (error) {
-    res.status(500).json({ error: "Erro ao buscar as subListas." });
+    res.status(500).json({ error: 'Erro ao buscar as subListas.' });
   }
 };
 
@@ -57,11 +59,11 @@ const atualizarSubLista = async (req, res) => {
     const response = await SubListaSchema.findOne({ id });
 
     if (!subListaAtualizada) {
-      return res.status(404).json({ error: "Lista não encontrada." });
+      return res.status(404).json({ error: 'Lista não encontrada.' });
     }
     res.status(200).json({ lista: response });
   } catch (error) {
-    res.status(500).json({ error: "Erro ao atualizar a lista." });
+    res.status(500).json({ error: 'Erro ao atualizar a lista.' });
   }
 };
 
@@ -70,7 +72,7 @@ const deletarSubLista = async (req, res) => {
     const { id } = req.params;
 
     if (!id) {
-      return res.status(400).json({ error: "ID inválido." });
+      return res.status(400).json({ error: 'ID inválido.' });
     }
 
     let lista = await SubListaSchema.findOne({ id }).deleteOne();
@@ -81,7 +83,7 @@ const deletarSubLista = async (req, res) => {
         .json({ mensagem: `Lista deletada com sucesso`, status: 200 });
     }
   } catch (error) {
-    res.status(500).json({ error: "Erro ao excluir a Lista." });
+    res.status(500).json({ error: 'Erro ao excluir a Lista.' });
   }
 };
 

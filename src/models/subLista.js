@@ -5,7 +5,11 @@ const SubListaSchema = new mongoose.Schema({
   id: {
     type: Number,
   },
-  lista_id: { type: Number, required: true },
+  lista_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Lista',
+    required: true,
+  },
   titulo: { type: String, required: true },
   data_criacao: { type: Date, default: Date.now },
   tipo: { type: String, required: true },
@@ -18,4 +22,4 @@ SubListaSchema.set('toJSON', {
   },
 });
 
-module.exports = mongoose.model('SubTarefa', SubListaSchema);
+module.exports = mongoose.model('SubLista', SubListaSchema);
