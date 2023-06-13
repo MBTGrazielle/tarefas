@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const SubListaSchema = require('../models/subLista');
 const ListaSchema = require('../models/lista');
+const TarefasSchema = require('../models/tarefa');
 const { generateAutoID } = require('../utils/generateAutoID');
 
 const cadastrarSubListas = async (req, res) => {
@@ -24,27 +25,54 @@ const cadastrarSubListas = async (req, res) => {
 
     await novaSubLista.save();
 
-    res
-      .status(201)
-      .json({
-        mensagem: 'Sublista criada com sucesso',
-        sublista: novaSubLista,
-        status: 201,
-      });
+    res.status(201).json({
+      mensagem: 'Sublista criada com sucesso',
+      sublista: novaSubLista,
+      status: 201,
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao cadastrar a subLista.' });
+    res
+      .status(500)
+      .json({ mensagem: 'Erro ao cadastrar a subLista.', status: 500 });
   }
 };
 
 const todasSubListas = async (req, res) => {
   try {
-    const subListas = await SubListaSchema.find();
-    res.status(200).json(subListas);
+    const sublistas = await SubListaSchema.find().sort({ data_criacao: -1 });
+
+    if (sublistas.length === 0) {
+      return res.status(404).json({
+        mensagem: 'Nenhuma sublista foi encontrada.',
+        status: 404,
+      });
+    }
+
+    const subListasComTarefas = [];
+
+    for (const sublista of sublistas) {
+      const tarefas = await TarefasSchema.find({ lista_id: lista._id });
+      subListasComTarefas.push({
+        sublista,
+        tarefas,
+      });
+    }
+
+    res.status(200).json({
+      quantidade_encontrada: `Encontramos ${
+        subListasComTarefas.length
+      } registro${subListasComTarefas.length === 1 ? '' : 's'}.`,
+      mensagem: 'SubListas encontradas.',
+      subListas: subListasComTarefas,
+      status: 200,
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao buscar as subListas.' });
+    res.status(500).json({
+      mensagem: 'Erro ao buscar as sublistas.',
+      status: 500,
+    });
   }
 };
-
 const buscarSubLista = async (req, res) => {};
 
 const atualizarSubLista = async (req, res) => {

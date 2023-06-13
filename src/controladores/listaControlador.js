@@ -1,5 +1,6 @@
 const ListaSchema = require('../models/lista');
 const SubListaSchema = require('../models/subLista');
+const TarefaSchema = require('../models/tarefa');
 const mongoose = require('mongoose');
 const { generateAutoID } = require('../utils/generateAutoID');
 const removeAccents = require('remove-accents');
@@ -46,9 +47,19 @@ const todasListas = async (req, res) => {
 
     for (const lista of listas) {
       const sublistas = await SubListaSchema.find({ lista_id: lista._id });
+      const sublistasComTarefas = [];
+
+      for (const sublista of sublistas) {
+        const tarefas = await TarefaSchema.find({ sublista_id: sublista._id });
+        sublistasComTarefas.push({
+          sublista,
+          tarefas,
+        });
+      }
+
       listasComSublistas.push({
         lista,
-        sublistas,
+        sublistas: sublistasComTarefas,
       });
     }
 

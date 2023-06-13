@@ -1,40 +1,54 @@
-const mongoose = require("mongoose");
-const SubListaSchema = require("../models/subLista");
-const ListaSchema = require("../models/lista");
-const TarefaSchema = require("../models/tarefa");
-
-function generateAutoID() {
-  const timestamp = new Date().getTime().toString();
-  const randomNum = Math.floor(Math.random() * 1000).toString();
-  const autoID = timestamp + randomNum;
-  return autoID;
-}
+const mongoose = require('mongoose');
+const SubListaSchema = require('../models/subLista');
+const ListaSchema = require('../models/lista');
+const TarefaSchema = require('../models/tarefa');
+const { generateAutoID } = require('../utils/generateAutoID');
 
 const cadastrarTarefasLista = async (req, res) => {
+  const {
+    lista_id,
+    sublista_id,
+    titulo,
+    descricao,
+    alocado,
+    data_entrega,
+    status,
+    prioridade,
+  } = req.body;
+
   try {
-    const { lista_id, titulo, descricao, alocado } = req.body;
+    const novoID = await generateAutoID();
 
     const listaExistente = await ListaSchema.findOne({ id: lista_id });
+    const subListaExistente = await SubListaSchema.findOne({ id: sublista_id });
+
     if (!listaExistente) {
-      return res.status(404).json({ error: "Lista não encontrada." });
+      return res.status(404).json({ error: 'Lista não encontrada.' });
+    }
+
+    if (!subListaExistente) {
+      return res.status(404).json({ error: 'Sublista não encontrada.' });
     }
 
     const novaTarefa = new TarefaSchema({
-      id: generateAutoID(),
+      id: novoID,
       titulo,
-      lista_id: listaExistente.id,
+      lista_id: listaExistente._id, // Usar o _id da lista
+      sublista_id: subListaExistente._id, // Usar o _id da sublista
       descricao,
       alocado,
-      tipo: "tarefa",
+      data_entrega,
+      status,
+      prioridade,
     });
 
-    const tarefaSalva = await novaTarefa.save();
+    await novaTarefa.save();
 
-    res.status(201).json(tarefaSalva);
+    res.status(201).json(novaTarefa);
   } catch (error) {
     res
       .status(500)
-      .json({ error: "Erro ao cadastrar a tarefa.", erro: error.message });
+      .json({ error: 'Erro ao cadastrar a tarefa.', erro: error.message });
   }
 };
 
@@ -47,15 +61,11 @@ const cadastrarTarefasSubLista = async (req, res) => {
     const sublistaExistente = await SubListaSchema.findOne({ id: sublista_id });
 
     if (!listaExistente) {
-      return res.status(404).json({ error: "Lista não encontrada." });
-    }
-
-    if (!sublistaExistente) {
-      return res.status(404).json({ error: "SubLista não encontrada." });
+      return res.status(404).json({ error: 'Lista não encontrada.' });
     }
 
     if (sublistaExistente.lista_id !== listaExistente.id) {
-      return res.status(404).json({ error: "Listas incompativeis." });
+      return res.status(404).json({ error: 'Listas incompativeis.' });
     }
 
     const novaTarefa = new TarefaSchema({
@@ -65,20 +75,20 @@ const cadastrarTarefasSubLista = async (req, res) => {
       sublista_id: sublistaExistente.id,
       descricao,
       alocado,
-      tipo: "tarefa",
+      tipo: 'tarefa',
     });
     const tarefaSalva = await novaTarefa.save();
     console.log(tarefaSalva);
     res.status(201).json(tarefaSalva);
   } catch (error) {
-    res.status(500).json({ error: "Erro ao cadastrar a tarefa." });
+    res.status(500).json({ error: 'Erro ao cadastrar a tarefa.' });
   }
 };
 
 function unificarPorListaId(tarefas) {
   const unificado = {};
 
-  tarefas.forEach((item) => {
+  tarefas.forEach(item => {
     const listaId = item.lista_id;
 
     if (!unificado[listaId]) {
@@ -102,7 +112,7 @@ const todasTarefas = async (req, res) => {
 
     res.status(200).json(tarefasFormatadas);
   } catch (error) {
-    res.status(500).json({ error: "Erro ao buscar as tarefas." });
+    res.status(500).json({ error: 'Erro ao buscar as tarefas.' });
   }
 };
 
