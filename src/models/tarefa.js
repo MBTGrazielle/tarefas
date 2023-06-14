@@ -19,6 +19,7 @@ const TarefaSchema = new mongoose.Schema({
   status: { type: String, required: true },
   prioridade: { type: Number, required: true },
   tipo: { type: String, required: true },
+  origem: { type: String, required: true },
 });
 
 TarefaSchema.set('toJSON', {

@@ -19,6 +19,7 @@ const cadastrarTarefas = async (req, res) => {
 
   try {
     const novoID = await generateAutoID();
+
     const listaExistente = await ListaSchema.findOne({ id: lista_id });
 
     if (!listaExistente) {
@@ -30,29 +31,29 @@ const cadastrarTarefas = async (req, res) => {
       subListaExistente = await SubListaSchema.findOne({ id: sublista_id });
       if (!subListaExistente) {
         return res.status(404).json({ error: 'Sublista não encontrada.' });
+      } else {
+        const novaTarefa = new TarefaSchema({
+          id: novoID,
+          lista_id: listaExistente._id,
+          sublista_id: subListaExistente ? subListaExistente._id : undefined,
+          titulo,
+          descricao,
+          alocado,
+          data_entrega,
+          status,
+          prioridade,
+          tipo: tipo,
+        });
+
+        const tarefaSalva = await novaTarefa.save();
+
+        res.status(201).json({
+          mensagem: 'Tarefa criada com sucesso',
+          tarefa: tarefaSalva,
+          status: 201,
+        });
       }
     }
-
-    const novaTarefa = new TarefaSchema({
-      id: novoID,
-      lista_id: listaExistente._id,
-      sublista_id: subListaExistente ? subListaExistente._id : undefined,
-      titulo,
-      descricao,
-      alocado,
-      data_entrega,
-      status,
-      prioridade,
-      tipo: tipo,
-    });
-
-    const tarefaSalva = await novaTarefa.save();
-
-    res.status(201).json({
-      mensagem: 'Tarefa criada com sucesso',
-      tarefa: tarefaSalva,
-      status: 201,
-    });
   } catch (error) {
     console.error(error);
     res
@@ -61,24 +62,24 @@ const cadastrarTarefas = async (req, res) => {
   }
 };
 
-// function unificarPorListaId(tarefas) {
-//   const unificado = {};
+function unificarPorListaId(tarefas) {
+  const unificado = {};
 
-//   tarefas.forEach(item => {
-//     const listaId = item.lista_id;
+  tarefas.forEach(item => {
+    const listaId = item.lista_id;
 
-//     if (!unificado[listaId]) {
-//       unificado[listaId] = {
-//         lista_id: listaId,
-//         tarefasLista: [],
-//       };
-//     }
+    if (!unificado[listaId]) {
+      unificado[listaId] = {
+        lista_id: listaId,
+        tarefasLista: [],
+      };
+    }
 
-//     unificado[listaId].tarefasLista.push(item);
-//   });
+    unificado[listaId].tarefasLista.push(item);
+  });
 
-//   return Object.values(unificado);
-// }
+  return Object.values(unificado);
+}
 
 const todasTarefas = async (req, res) => {
   try {

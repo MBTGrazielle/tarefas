@@ -32,6 +32,62 @@ const cadastrarLista = async (req, res) => {
   }
 };
 
+// const todasListas = async (req, res) => {
+//   try {
+//     const listas = await ListaSchema.find().sort({ data_criacao: -1 });
+
+//     if (listas.length === 0) {
+//       return res.status(404).json({
+//         mensagem: 'Nenhuma lista foi encontrada.',
+//         status: 404,
+//       });
+//     }
+
+//     const listasComSublistas = [];
+
+//     for (const lista of listas) {
+//       const sublistas = await SubListaSchema.find({ lista_id: lista._id });
+//       const sublistasComTarefas = [];
+
+//       for (const sublista of sublistas) {
+//         const tarefas = await TarefaSchema.find({ sublista_id: sublista._id });
+
+//         const tarefasComOrigem = tarefas.map(tarefa => {
+//           if (tarefa.lista_id.toString() === lista._id.toString()) {
+//             return { ...tarefa._doc, origem: 'lista' };
+//           } else {
+//             return { ...tarefa._doc, origem: 'sublista' };
+//           }
+//         });
+
+//         sublistasComTarefas.push({
+//           sublista,
+//           tarefas: tarefasComOrigem,
+//         });
+//       }
+
+//       listasComSublistas.push({
+//         lista,
+//         sublistas: sublistasComTarefas,
+//       });
+//     }
+
+//     res.status(200).json({
+//       quantidade_encontrada: `Encontramos ${
+//         listasComSublistas.length
+//       } registro${listasComSublistas.length === 1 ? '' : 's'}.`,
+//       mensagem: 'Listas encontradas.',
+//       resultado: listasComSublistas,
+//       status: 200,
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       mensagem: 'Erro ao buscar as listas.',
+//       status: 500,
+//     });
+//   }
+// };
+
 const todasListas = async (req, res) => {
   try {
     const listas = await ListaSchema.find().sort({ data_criacao: -1 });
@@ -53,11 +109,7 @@ const todasListas = async (req, res) => {
         const tarefas = await TarefaSchema.find({ sublista_id: sublista._id });
 
         const tarefasComOrigem = tarefas.map(tarefa => {
-          if (tarefa.lista_id.toString() === lista._id.toString()) {
-            return { ...tarefa._doc, origem: 'lista' };
-          } else {
-            return { ...tarefa._doc, origem: 'sublista' };
-          }
+          return { ...tarefa._doc, origem: 'sublista' };
         });
 
         sublistasComTarefas.push({
@@ -66,9 +118,16 @@ const todasListas = async (req, res) => {
         });
       }
 
+      const tarefasLista = await TarefaSchema.find({ lista_id: lista._id });
+
+      const tarefasComOrigemLista = tarefasLista.map(tarefa => {
+        return { ...tarefa._doc, origem: 'lista' };
+      });
+
       listasComSublistas.push({
         lista,
         sublistas: sublistasComTarefas,
+        tarefas: tarefasComOrigemLista,
       });
     }
 
