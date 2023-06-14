@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const SubListaSchema = require('../models/subLista');
 const ListaSchema = require('../models/lista');
-const TarefasSchema = require('../models/tarefa');
 const { generateAutoID } = require('../utils/generateAutoID');
 
 const cadastrarSubListas = async (req, res) => {
@@ -39,31 +38,21 @@ const cadastrarSubListas = async (req, res) => {
 
 const todasSubListas = async (req, res) => {
   try {
-    const sublistas = await SubListaSchema.find().sort({ data_criacao: -1 });
+    const subListas = await SubListaSchema.find().sort({ data_criacao: -1 });
 
-    if (sublistas.length === 0) {
+    if (subListas.length === 0) {
       return res.status(404).json({
         mensagem: 'Nenhuma sublista foi encontrada.',
         status: 404,
       });
     }
 
-    const subListasComTarefas = [];
-
-    for (const sublista of sublistas) {
-      const tarefas = await TarefasSchema.find({ lista_id: lista._id });
-      subListasComTarefas.push({
-        sublista,
-        tarefas,
-      });
-    }
-
     res.status(200).json({
-      quantidade_encontrada: `Encontramos ${
-        subListasComTarefas.length
-      } registro${subListasComTarefas.length === 1 ? '' : 's'}.`,
+      quantidade_encontrada: `Encontramos ${subListas.length} registro${
+        subListas.length === 1 ? '' : 's'
+      }.`,
       mensagem: 'SubListas encontradas.',
-      subListas: subListasComTarefas,
+      subListas: subListas,
       status: 200,
     });
   } catch (error) {
@@ -73,6 +62,7 @@ const todasSubListas = async (req, res) => {
     });
   }
 };
+
 const buscarSubLista = async (req, res) => {};
 
 const atualizarSubLista = async (req, res) => {

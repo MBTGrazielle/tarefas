@@ -51,9 +51,18 @@ const todasListas = async (req, res) => {
 
       for (const sublista of sublistas) {
         const tarefas = await TarefaSchema.find({ sublista_id: sublista._id });
+
+        const tarefasComOrigem = tarefas.map(tarefa => {
+          if (tarefa.lista_id.toString() === lista._id.toString()) {
+            return { ...tarefa._doc, origem: 'lista' };
+          } else {
+            return { ...tarefa._doc, origem: 'sublista' };
+          }
+        });
+
         sublistasComTarefas.push({
           sublista,
-          tarefas,
+          tarefas: tarefasComOrigem,
         });
       }
 
@@ -68,7 +77,7 @@ const todasListas = async (req, res) => {
         listasComSublistas.length
       } registro${listasComSublistas.length === 1 ? '' : 's'}.`,
       mensagem: 'Listas encontradas.',
-      listas: listasComSublistas,
+      resultado: listasComSublistas,
       status: 200,
     });
   } catch (error) {
