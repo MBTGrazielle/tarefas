@@ -8,6 +8,12 @@ const removeAccents = require('remove-accents');
 const cadastrarLista = async (req, res) => {
   const { titulo, tipo } = req.body;
 
+  if (!titulo || !tipo) {
+    return res
+      .status(400)
+      .json({ mensagem: 'Título e Tipo são campos obrigatórios', status: 400 });
+  }
+
   try {
     const novoID = await generateAutoID();
 
@@ -31,8 +37,6 @@ const cadastrarLista = async (req, res) => {
     });
   }
 };
-
-// const todasListas = async (req, res) => {
 //   try {
 //     const listas = await ListaSchema.find().sort({ data_criacao: -1 });
 
@@ -210,7 +214,11 @@ const atualizarLista = async (req, res) => {
         .status(404)
         .json({ mensagem: 'Lista não encontrada.', status: 404 });
     }
-    res.status(200).json({ lista: response, status: 200 });
+    res.status(200).json({
+      mensagem: 'Lista atualizada com sucesso',
+      lista: response,
+      status: 200,
+    });
   } catch (error) {
     res
       .status(500)
@@ -225,8 +233,20 @@ const deletarLista = async (req, res) => {
     let listaExcluida = await ListaSchema.findOneAndDelete({ id });
 
     if (listaExcluida) {
+      // Deletar sublista relacionada
+      await SubListaSchema.deleteMany({ lista_id: listaExcluida._id });
+
       let listasRestantes = await ListaSchema.find().countDocuments();
       let nomesListas = await ListaSchema.find({}, 'titulo');
+
+      if (listasRestantes === 0) {
+        return res.status(404).json({
+          mensagem: 'Lista deletada com sucesso',
+          listas: 'Não há listas para a busca',
+          listas_restantes: listasRestantes,
+          status: 404,
+        });
+      }
 
       return res.status(200).json({
         mensagem: 'Lista deletada com sucesso',

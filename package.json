@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest --watchAll --detectOpenHandles",
-    "dev": "git pull & npm i & nodemon ./src/index.js",
+    "dev": " nodemon ./src/index.js",
     "start": "nodemon ./src/index.js"
   },
   "repository": {

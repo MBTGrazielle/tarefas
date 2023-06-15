@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const removeAccents = require('remove-accents');
 const SubListaSchema = require('../models/subLista');
 const ListaSchema = require('../models/lista');
 const { generateAutoID } = require('../utils/generateAutoID');
@@ -12,7 +13,10 @@ const cadastrarSubListas = async (req, res) => {
     const listaExistente = await ListaSchema.findOne({ id: lista_id });
 
     if (!listaExistente) {
-      return res.status(404).json({ error: 'Lista não encontrada.' });
+      return res.status(404).json({
+        mensagem: 'Para criar uma sublista é necessário criar uma lista.',
+        status: 404,
+      });
     }
 
     const novaSubLista = new SubListaSchema({
@@ -63,7 +67,51 @@ const todasSubListas = async (req, res) => {
   }
 };
 
-const buscarSubLista = async (req, res) => {};
+const buscarSubLista = async (req, res) => {
+  const parametros = req.body;
+
+  try {
+    const subListas = await SubListaSchema.find().sort({ data_criacao: -1 });
+
+    const subListasFiltradas = subListas.filter(lista => {
+      const matches = Object.entries(parametros).every(
+        ([chave, valorParametro]) => {
+          const valorSubLista = lista[chave];
+
+          if (
+            valorSubLista &&
+            removeAccents(valorSubLista.toString().toLowerCase()).includes(
+              removeAccents(valorParametro.toString().toLowerCase())
+            )
+          ) {
+            return true;
+          }
+        }
+      );
+
+      return matches;
+    });
+
+    if (subListasFiltradas.length > 0) {
+      return res.status(200).json({
+        mensagem: `Encontramos ${subListasFiltradas.length} resultado${
+          subListasFiltradas.length === 1 ? '' : 's'
+        }.`,
+        subListasFiltradas,
+        status: 200,
+      });
+    } else {
+      return res.status(404).json({
+        mensagem: 'Nenhum resultado foi encontrado para a sua busca.',
+        status: 404,
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      mensagem: error.message,
+    });
+  }
+};
 
 const atualizarSubLista = async (req, res) => {
   const { id } = req.params;
@@ -72,16 +120,27 @@ const atualizarSubLista = async (req, res) => {
   try {
     const subListaAtualizada = await SubListaSchema.find({ id }).updateOne({
       titulo,
+      tipo,
     });
 
     const response = await SubListaSchema.findOne({ id });
 
-    if (!subListaAtualizada) {
-      return res.status(404).json({ error: 'Lista não encontrada.' });
+    if (response === null) {
+      return res
+        .status(404)
+        .json({ mensagem: 'SubLista não encontrada.', status: 404 });
     }
-    res.status(200).json({ lista: response });
+    res
+      .status(200)
+      .json({
+        mensagem: 'SubLista atualizada com sucesso!',
+        subLista: response,
+        status: 200,
+      });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao atualizar a lista.' });
+    res
+      .status(500)
+      .json({ mensagem: 'Erro ao atualizar a subLista.', status: 500 });
   }
 };
 
